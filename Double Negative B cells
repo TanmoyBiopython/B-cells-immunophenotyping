@@ -1,0 +1,262 @@
+# Install packages once if needed:
+# install.packages(c("ggplot2", "ggpubr"))
+
+library(ggplot2)
+library(ggpubr)
+
+# Patient-level data from the selected Excel range
+data <- data.frame(
+  Patient_ID = c(
+    # GBS
+    "GBS-02.fcs", "GBS-3.fcs", "GBS-4.fcs", "GBS-5R.fcs",
+    "GBS-6.fcs", "GBS-7.fcs", "GBS-8R.fcs", "GBS-09_001.fcs",
+    "GBS-10.fcs", "GBS-11.fcs", "GBS-12_001.fcs", "GBS-14R.fcs",
+    "GBS-15.fcs", "GBS-16 Repeat.fcs", "GBS-17_001.fcs", "GBS-19.fcs",
+    "GBS-20.fcs", "GBS-21.fcs", "GBS-22.fcs", "GBS-23.fcs",
+    "GBS-24.fcs", "GBS-25 R.fcs", "GBS-26.fcs", "GBS-27.fcs",
+    
+    # MS
+    "MS-02.fcs", "MS-03_MS-03.fcs", "MS-4.fcs", "MS-05_MS-05.fcs",
+    "MS-6.fcs", "MS-7.fcs", "MS-8.fcs", "MS-09.fcs",
+    "MS-10.fcs", "MS-11.fcs", "MS-12.fcs", "MS-13.fcs",
+    "MS-14.fcs", "MS-15.fcs", "MS-16.fcs", "MS-17.fcs",
+    "MS-19.fcs", "MS-20.fcs", "MS-21.fcs", "MS-22.fcs",
+    "MS-23.fcs", "MS-24.fcs", "MS-25.fcs",
+    
+    # SLE
+    "SLE-02-.fcs", "SLE-03-.fcs", "SLE-04.fcs", "SLE-05.fcs",
+    "SLE-06.fcs", "SLE-07.fcs", "SLE-08_SLE-08.fcs", "SLE-09_SLE-09.fcs",
+    "SLE-10_SLE-10.fcs", "SLE-11_SLE-11.fcs", "SLE-12_SLE-12.fcs",
+    "SLE-13.fcs", "SLE-14.fcs", "SLE-15_SLE-15.fcs",
+    "SLE-17_SLE-17.fcs", "SLE-19_SLE-19.fcs", "SLE-21.fcs",
+    "SLE-22.fcs", "SLE-23.fcs", "SLE-24.fcs", "SLE-25.fcs",
+    "SLE-26.fcs", "SLE-27.fcs",
+    
+    # HC
+    "HC-08.fcs", "HC-09.fcs", "HC-10R2.fcs", "HC-11_HC-11.fcs",
+    "HC-12.fcs", "HC-13.fcs", "HC-14.fcs", "HC-15.fcs",
+    "HC-18.fcs", "HC-19.fcs", "HC-20.fcs", "HC-21.fcs",
+    "HC-22.fcs", "HC-23.fcs", "HC-24.fcs", "HC-25.fcs",
+    "HC-26.fcs", "HC-27.fcs", "HC-28.fcs", "HC-29.fcs",
+    "HC-30.fcs", "HC-32-.fcs", "HC-34-.fcs", "HC-04.fcs"
+  ),
+  
+  Group = c(
+    rep("GBS", 24),
+    rep("MS", 23),
+    rep("SLE", 23),
+    rep("HC", 24)
+  ),
+  
+  Value = c(
+    # GBS values
+    40.5, 51.5, 39.3, 23.1, 26.2, 25.7, 50.1, 12.2,
+    16.0, 8.91, 18.3, 40.2, 10.7, 45.1, 12.6, 21.3,
+    31.1, 16.9, 7.79, 17.5, 39.8, 31.3, 14.1, 22.0,
+    
+    # MS values
+    18.6, 72.8, 42.4, 43.4, 19.3, 15.1, 11.1, 30.7,
+    73.7, 24.5, 14.1, 13.5, 74.9, 21.0, 19.4, 33.0,
+    16.2, 32.2, 11.1, 15.7, 18.4, 20.4, 20.5,
+    
+    # SLE values
+    56.7, 56.9, 37.0, 39.2, 68.3, 32.6, 69.9, 42.6,
+    31.6, 68.3, 64.0, 56.0, 68.1, 30.7, 28.2, 88.1,
+    43.9, 34.5, 52.8, 16.8, 29.3, 27.0, 8.06,
+    
+    # HC values
+    21.1, 23.9, 38.8, 13.8, 15.9, 30.1, 10.2, 63.0,
+    24.0, 22.7, 29.0, 9.67, 26.9, 25.6, 40.0, 23.9,
+    51.5, 11.4, 23.2, 6.59, 29.8, 42.9, 39.4, 19.0
+  ),
+  
+  stringsAsFactors = FALSE
+)
+
+# Set group order
+data$Group <- factor(
+  data$Group,
+  levels = c("GBS", "MS", "SLE", "HC")
+)
+
+# Holm-adjusted Dunn post-hoc P values
+p_values <- data.frame(
+  group1 = c("GBS", "GBS", "GBS", "MS", "MS", "SLE"),
+  group2 = c("MS", "SLE", "HC", "SLE", "HC", "HC"),
+  p_adj = c(1.0000, 0.0040, 1.0000, 0.0061, 1.0000, 0.0061),
+  y.position = c(95, 105, 115, 125, 135, 145)
+)
+
+# Labels displayed above the comparison brackets
+p_values$p_label <- paste0(
+  "P = ",
+  format.pval(
+    p_values$p_adj,
+    digits = 3,
+    eps = 0.0001
+  )
+)
+
+# Colors
+group_colors <- c(
+  "GBS" = "#4C78A8",
+  "MS"  = "#F58518",
+  "SLE" = "#E45756",
+  "HC"  = "#72B7B2"
+)
+
+point_colors <- c(
+  "GBS" = "#1F4E79",
+  "MS"  = "#B85C00",
+  "SLE" = "#9E2F2F",
+  "HC"  = "#2F7F7B"
+)
+
+# Box plot with one dot per patient and P-value annotations
+ggplot(data, aes(x = Group, y = Value, fill = Group)) +
+  
+  geom_boxplot(
+    width = 0.6,
+    alpha = 0.65,
+    outlier.shape = NA
+  ) +
+  
+  geom_jitter(
+    aes(color = Group),
+    width = 0.15,
+    size = 2.5,
+    alpha = 0.85
+  ) +
+  
+  stat_pvalue_manual(
+    p_values,
+    label = "p_label",
+    xmin = "group1",
+    xmax = "group2",
+    y.position = "y.position",
+    tip.length = 0.01,
+    bracket.size = 0.5,
+    size = 3.5,
+    fontface = "bold",
+    inherit.aes = FALSE
+  ) +
+  
+  labs(
+    title = "Double Negative B Cells",
+    x = "Group",
+    y = "% of parents"
+  ) +
+  
+  scale_fill_manual(values = group_colors) +
+  scale_color_manual(values = point_colors) +
+  
+  coord_cartesian(
+    ylim = c(0, 155),
+    clip = "off"
+  ) +
+  
+  theme_classic(base_size = 13) +
+  
+  theme(
+    legend.position = "none",
+    plot.title = element_text(
+      face = "bold",
+      hjust = 0.5
+    ),
+    axis.title = element_text(face = "bold"),
+    plot.margin = margin(10, 10, 30, 10)
+  )
+
+
+# Keep the existing data object from the previous code
+
+library(ggplot2)
+library(ggpubr)
+
+# Only significant Holm-adjusted P values
+p_values <- data.frame(
+  group1 = c("GBS", "MS", "SLE"),
+  group2 = c("SLE", "SLE", "HC"),
+  p_adj = c(0.0040, 0.0061, 0.0061),
+  y.position = c(95, 110, 125)
+)
+
+# Labels displayed on the figure
+p_values$p_label <- paste0(
+  "P = ",
+  format.pval(
+    p_values$p_adj,
+    digits = 3,
+    eps = 0.0001
+  )
+)
+
+# Group colors
+group_colors <- c(
+  "GBS" = "#4C78A8",
+  "MS"  = "#F58518",
+  "SLE" = "#E45756",
+  "HC"  = "#72B7B2"
+)
+
+point_colors <- c(
+  "GBS" = "#1F4E79",
+  "MS"  = "#B85C00",
+  "SLE" = "#9E2F2F",
+  "HC"  = "#2F7F7B"
+)
+
+# Box plot with individual patient dots and significant P values only
+ggplot(data, aes(x = Group, y = Value, fill = Group)) +
+  
+  geom_boxplot(
+    width = 0.6,
+    alpha = 0.65,
+    outlier.shape = NA
+  ) +
+  
+  geom_jitter(
+    aes(color = Group),
+    width = 0.15,
+    size = 2.5,
+    alpha = 0.85
+  ) +
+  
+  stat_pvalue_manual(
+    p_values,
+    label = "p_label",
+    xmin = "group1",
+    xmax = "group2",
+    y.position = "y.position",
+    tip.length = 0.01,
+    bracket.size = 0.5,
+    size = 3.5,
+    fontface = "bold",
+    inherit.aes = FALSE
+  ) +
+  
+  labs(
+    title = "Double Negative B Cells",
+    x = "Group",
+    y = "% of parents"
+  ) +
+  
+  scale_fill_manual(values = group_colors) +
+  scale_color_manual(values = point_colors) +
+  
+  coord_cartesian(
+    ylim = c(0, 140),
+    clip = "off"
+  ) +
+  
+  theme_classic(base_size = 13) +
+  
+  theme(
+    legend.position = "none",
+    plot.title = element_text(
+      face = "bold",
+      hjust = 0.5
+    ),
+    axis.title = element_text(face = "bold"),
+    plot.margin = margin(10, 10, 30, 10)
+  )
