@@ -1,10 +1,11 @@
+
 # Install packages once if needed:
 # install.packages(c("ggplot2", "ggpubr"))
 
 library(ggplot2)
 library(ggpubr)
 
-# Patient-level data from the selected Excel range
+# Patient-level data
 data <- data.frame(
   Patient_ID = c(
     # GBS
@@ -87,101 +88,7 @@ p_values <- data.frame(
   y.position = c(95, 105, 115, 125, 135, 145)
 )
 
-# Labels displayed above the comparison brackets
-p_values$p_label <- paste0(
-  "P = ",
-  format.pval(
-    p_values$p_adj,
-    digits = 3,
-    eps = 0.0001
-  )
-)
-
-# Colors
-group_colors <- c(
-  "GBS" = "#4C78A8",
-  "MS"  = "#F58518",
-  "SLE" = "#E45756",
-  "HC"  = "#72B7B2"
-)
-
-point_colors <- c(
-  "GBS" = "#1F4E79",
-  "MS"  = "#B85C00",
-  "SLE" = "#9E2F2F",
-  "HC"  = "#2F7F7B"
-)
-
-# Box plot with one dot per patient and P-value annotations
-ggplot(data, aes(x = Group, y = Value, fill = Group)) +
-  
-  geom_boxplot(
-    width = 0.6,
-    alpha = 0.65,
-    outlier.shape = NA
-  ) +
-  
-  geom_jitter(
-    aes(color = Group),
-    width = 0.15,
-    size = 2.5,
-    alpha = 0.85
-  ) +
-  
-  stat_pvalue_manual(
-    p_values,
-    label = "p_label",
-    xmin = "group1",
-    xmax = "group2",
-    y.position = "y.position",
-    tip.length = 0.01,
-    bracket.size = 0.5,
-    size = 3.5,
-    fontface = "bold",
-    inherit.aes = FALSE
-  ) +
-  
-  labs(
-    title = "Double Negative B Cells",
-    x = "Group",
-    y = "% of parents"
-  ) +
-  
-  scale_fill_manual(values = group_colors) +
-  scale_color_manual(values = point_colors) +
-  
-  coord_cartesian(
-    ylim = c(0, 155),
-    clip = "off"
-  ) +
-  
-  theme_classic(base_size = 13) +
-  
-  theme(
-    legend.position = "none",
-    plot.title = element_text(
-      face = "bold",
-      hjust = 0.5
-    ),
-    axis.title = element_text(face = "bold"),
-    plot.margin = margin(10, 10, 30, 10)
-  )
-
-
-# Keep the existing data object from the previous code
-
-library(ggplot2)
-library(ggpubr)
-
-# Only significant Holm-adjusted P values
-p_values <- data.frame(
-  group1 = c("GBS", "MS", "SLE"),
-  group2 = c("SLE", "SLE", "HC"),
-  p_adj = c(0.0040, 0.0061, 0.0061),
-  y.position = c(95, 110, 125)
-)
-
-# Labels displayed on the figure
+# P-value labels
 p_values$p_label <- paste0(
   "P = ",
   format.pval(
@@ -206,7 +113,7 @@ point_colors <- c(
   "HC"  = "#2F7F7B"
 )
 
-# Box plot with individual patient dots and significant P values only
+# Box plot with all pairwise comparisons
 ggplot(data, aes(x = Group, y = Value, fill = Group)) +
   
   geom_boxplot(
@@ -238,7 +145,100 @@ ggplot(data, aes(x = Group, y = Value, fill = Group)) +
   labs(
     title = "Double Negative B Cells",
     x = "Group",
-    y = "% of parents"
+    y = "% of DN B cells (of Total B cells)"
+  ) +
+  
+  scale_fill_manual(values = group_colors) +
+  scale_color_manual(values = point_colors) +
+  
+  coord_cartesian(
+    ylim = c(0, 155),
+    clip = "off"
+  ) +
+  
+  theme_classic(base_size = 13) +
+  
+  theme(
+    legend.position = "none",
+    plot.title = element_text(
+      face = "bold",
+      hjust = 0.5
+    ),
+    axis.title = element_text(face = "bold"),
+    plot.margin = margin(10, 10, 30, 10)
+  )
+
+# Keep the existing data object from the previous code
+
+library(ggplot2)
+library(ggpubr)
+
+# Only significant Holm-adjusted P values
+p_values <- data.frame(
+  group1 = c("GBS", "MS", "SLE"),
+  group2 = c("SLE", "SLE", "HC"),
+  p_adj = c(0.0040, 0.0061, 0.0061),
+  y.position = c(95, 110, 125)
+)
+
+# P-value labels
+p_values$p_label <- paste0(
+  "P = ",
+  format.pval(
+    p_values$p_adj,
+    digits = 3,
+    eps = 0.0001
+  )
+)
+
+# Group colors
+group_colors <- c(
+  "GBS" = "#4C78A8",
+  "MS"  = "#F58518",
+  "SLE" = "#E45756",
+  "HC"  = "#72B7B2"
+)
+
+point_colors <- c(
+  "GBS" = "#1F4E79",
+  "MS"  = "#B85C00",
+  "SLE" = "#9E2F2F",
+  "HC"  = "#2F7F7B"
+)
+
+# Box plot with significant P values only
+ggplot(data, aes(x = Group, y = Value, fill = Group)) +
+  
+  geom_boxplot(
+    width = 0.6,
+    alpha = 0.65,
+    outlier.shape = NA
+  ) +
+  
+  geom_jitter(
+    aes(color = Group),
+    width = 0.15,
+    size = 2.5,
+    alpha = 0.85
+  ) +
+  
+  stat_pvalue_manual(
+    p_values,
+    label = "p_label",
+    xmin = "group1",
+    xmax = "group2",
+    y.position = "y.position",
+    tip.length = 0.01,
+    bracket.size = 0.5,
+    size = 3.5,
+    fontface = "bold",
+    inherit.aes = FALSE
+  ) +
+  
+  labs(
+    title = "Double Negative B Cells",
+    x = "Group",
+    y = "% of DN B cells (of Total B cells)"
   ) +
   
   scale_fill_manual(values = group_colors) +
